@@ -22,25 +22,40 @@ foreach($games as $game){
         continue;
       }
       if(!isset($index_by_name[$client_name])){
-        $index_by_name[$client_name] = array('captures' => 0, 'returns' => 0, 'kills' => 0, 'deaths' => 0, 'score' => 0);
+        $index_by_name[$client_name] = array('captures' => 0, 'returns' => 0, 'kills' => 0, 'deaths' => 0, 'score' => 0, 'games' => 0);
       }
       $index_by_name[$client_name]['captures'] += $client->getFlagCaptureCount();
       $index_by_name[$client_name]['returns'] += $client->getFlagReturnCount();
       $index_by_name[$client_name]['kills'] += $client->getKillCount();
       $index_by_name[$client_name]['deaths'] += $client->getDeathCount();
       $index_by_name[$client_name]['score'] += $client->getCtfScore();
+      $index_by_name[$client_name]['games'] += 1;
     }
   }
 }
 
+// Calculate score average
+array_walk($index_by_name, function(&$v, $i){
+  $v['score_average'] = $v['score'] / $v['games'];
+});
 // Sort by total
 uasort($index_by_name, function($a, $b){
-  return $b['score'] - $a['score'];
+  return $b['score_average'] - $a['score_average'];
 });
 
 $bold = `tput bold`;
 $normal = `tput sgr0`;
-echo "{$bold}Player Name | Pickups | Returns | Kills | Deaths | Total | Score\n{$normal}";
+echo "{$bold}Player Name | Pickups | Returns | Kills | Deaths | Total | Score | Score Average\n{$normal}";
 foreach($index_by_name as $player_name => $stats){
-  printf("% -11s | % 7d | % 7d | % 5d | % 6d | %+ 5d | {$bold}% 5d{$normal}\n", sanitize_client_name($player_name), $stats['captures'], $stats['returns'], $stats['kills'], $stats['deaths'], $stats['kills'] - $stats['deaths'], $stats['score']);
+  printf(
+    "% -11s | % 7d | % 7d | % 5d | % 6d | %+ 5d | % 5d | {$bold}% 13.2f{$normal}\n",
+    sanitize_client_name($player_name),
+    $stats['captures'],
+    $stats['returns'],
+    $stats['kills'],
+    $stats['deaths'],
+    $stats['kills'] - $stats['deaths'],
+    $stats['score'],
+    $stats['score_average']
+  );
 }
