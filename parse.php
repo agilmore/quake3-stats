@@ -32,6 +32,7 @@ $BOTS = array(
   'Sarge',
   'Hossman',
   'Wrack',
+  'Visor',
 );
 
 
@@ -42,6 +43,9 @@ $BOTS = array(
 
 function parse_stream($stream){
   $s_current_game = NULL;
+  $s_blue_flag = -1;
+  $s_red_flag = -1;
+  
   $matches = array();
 
   while($line = stream_get_line($stream, 8189, "\n")){
@@ -82,6 +86,37 @@ function parse_stream($stream){
           $s_client = $s_current_game->getClient($info['killed']);
           if(isset($s_client)){
             $s_client->incrementDeathCount();
+            if($s_client->getId() == $s_blue_flag || $s_client->getId() == $s_red_flag){
+              #echo "{$s_client->getName()} died whilst holding the flag?\n";
+            }
+          }
+          break;
+        case 'Item':
+          list($client_id, $item) = explode(' ', $matches[3]);
+          $s_client = $s_current_game->getClient($client_id);
+          if($item == 'team_CTF_blueflag' || $item == 'team_CTF_redflag'){
+            $flag_team = Client::TEAM_NONE;
+            switch($item){
+              case 'team_CTF_redflag': $flag_team = Client::TEAM_RED; break;
+              case 'team_CTF_blueflag': $flag_team = Client::TEAM_BLUE; break;
+            }
+            
+            $state_var = $flag_team == Client::TEAM_RED ? 's_red_flag' : 's_blue_flag';
+            if($s_client->getTeam() == $flag_team){ //returning team flag.
+              $s_client->incrementFlagReturnCount();
+              $$state_var = -1;
+            }
+            else{
+              $s_client->incrementFlagCaptureCount();
+              $$state_var = $s_client->getId();
+            }
+          }
+          break;
+        case 'score':
+          if($s_current_game->getInfo('g_gametype') == '4'){
+            $score = parse_score($matches[3]);
+            $s_client = $s_current_game->getClient($score['client_id']);
+            $s_client->setCtfScore($score['score']);            
           }
           break;
         case 'ShutdownGame':
@@ -112,14 +147,14 @@ function sanitize_client_name($name){
 }
 
 function parse_user_info($text){
-  list($client_id, $info) = explode(' ', $text);
+  list($client_id, $info) = explode(' ', $text, 2);
   $items = unpack_attributes($info);
   return array('client_id' => $client_id, 'items' => $items);
 }
 
 function parse_kill_info($text){
   $matches = array();
-  if(preg_match('/^(\d+)\s(\d+)\s(\d+):\s([\w_<>^]+)\skilled\s([^ ]+)\sby\s([\w_<>^]+)$/', $text, $matches)){
+  if(preg_match('/^(\d+)\s(\d+)\s(\d+):\s([\w_<>\^ ]+)\skilled\s([\w_<>\^ ]+)\sby\s([\w_<>^]+)$/', $text, $matches)){
     return array(
       'killer' => (int) $matches[1],
       'killed' => (int) $matches[2],
@@ -131,11 +166,27 @@ function parse_kill_info($text){
   }
 }
 
-/**
+function parse_score($text){
+  $matches = array();
+  if(preg_match('/^(\d+)\s+ping:\s+(\d+)\s+client:\s+(\d+)\s+([\w_<>\^ ]+)$/', $text, $matches)){
+    return array(
+      'score' => (int) $matches[1],
+      'ping' => (int) $matches[2],
+      'client_id' => (int) $matches[3],
+      'client_name' => $matches[4],
+    );
+  }
+}
+
+/*
  * Classes
  */
 
 class Client{
+  const TEAM_NONE = -1;
+  const TEAM_RED = 1;
+  const TEAM_BLUE = 2;
+
   private $id;
   private $name;
   private $info;
@@ -143,6 +194,10 @@ class Client{
   private $leaveTime;
   private $killCount = 0;
   private $deathCount = 0;
+  private $ctfScore = 0;
+  private $team;
+  private $flagCapture;
+  private $flagReturn;
 
   function __construct($client_id){
     $this->id = $client_id;
@@ -176,14 +231,30 @@ class Client{
     $this->leaveTime = $time;
   }
   
-  function getInfo(){
-    return $this->info;
+  function getTeam(){
+    return $this->team;
+  }
+  
+  function setTeam($team){
+    $this->team = $team;
+  }
+  
+  function getInfo($name = NULL){
+    if(!empty($name)){
+      return $this->info[$name];
+    }
+    else{
+      return $this->info;
+    }
   }
   
   function setInfo($info){
     $this->info = $info;
     if(!empty($info['n'])){
       $this->setName($info['n']);
+    }
+    if(!empty($info['t'])){
+      $this->setTeam($info['t']);
     }
   }
   
@@ -203,9 +274,40 @@ class Client{
     $this->deathCount++;
   }
   
+  function getCtfScore(){
+    return $this->ctfScore;
+  }
+  
+  function setCtfScore($ctfScore){
+    $this->ctfScore = $ctfScore;
+  }
+  
+  function getFlagCaptureCount(){
+    return $this->flagCapture;
+  }
+  
+  function incrementFlagCaptureCount(){
+    $this->flagCapture++;
+  }
+  
+  function getFlagReturnCount(){
+    return $this->flagReturn;
+  }
+  
+  function incrementFlagReturnCount(){
+    $this->flagReturn++;
+  }
+  
   function __toString(){
-    $san_name = sanitize_client_name($this->name);
-    return "{$this->id}) $san_name (joined at {$this->beginTime}) (left at {$this->leaveTime}) (Kills: {$this->killCount}, Death: {$this->deathCount})";
+    $output = sprintf(
+      "% 2d) %s DM (Kills: %d, Deaths: %d) CTF (Score: %d)",
+      $this->id,
+      sanitize_client_name($this->name),
+      $this->killCount,
+      $this->deathCount,
+      $this->ctfScore
+    );
+    return $output;
   }
 }
 
@@ -236,6 +338,15 @@ class Game{
   
   function setInfo($info){
     $this->info = $info;
+  }
+  
+  function getInfo($name = NULL){
+    if(!empty($name)){
+      return $this->info[$name];
+    }
+    else{
+      return $this->info;
+    }
   }
   
   function __toString(){

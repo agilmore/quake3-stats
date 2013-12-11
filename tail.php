@@ -7,16 +7,16 @@ $fh = fopen('php://stdin', 'r');
 $games = array();
 while($game = parse_stream($fh)){
   $games[] = $game;
-  echo $game;
-  echo "----------\n";
+  #echo $game;
+  #echo "----------\n";
 }
 
 $index_by_name = array();
 
 echo "Summary\n";
 foreach($games as $game){
+  if($game->getInfo('g_gametype') != '0') continue;
   $clients = $game->getClients();
-  #var_dump($clients);
   if(!empty($clients) && is_array($clients)){
     foreach($clients as $client){
       $client_name = $client->getName();
@@ -32,14 +32,20 @@ foreach($games as $game){
   }
 }
 
+// Exclude players with 0 kills and deaths.
+$index_by_name = array_filter($index_by_name, function($v){
+  return $v['kills'] > 0 || $v['deaths'] > 0;
+});
+// Calculate total
 array_walk($index_by_name, function(&$v, $i){
   $v['total'] = $v['kills'] - $v['deaths'];
 });
+// Sort by total
 uasort($index_by_name, function($a, $b){
   return $b['total'] - $a['total'];
 });
 
-echo "Player Name | Kills | Deaths | Total\n";
+echo "Player Name\t|\tKills\t|\tDeaths\t|\tTotal\n";
 foreach($index_by_name as $player_name => $stats){
-  printf("% -11s | % 5d | % 6d | %+ 5d\n", sanitize_client_name($player_name), $stats['kills'], $stats['deaths'], $stats['kills'] - $stats['deaths']);
+  printf("% -11s\t|\t% 5d\t|\t% 6d\t|\t%+ 5d\n", sanitize_client_name($player_name), $stats['kills'], $stats['deaths'], $stats['kills'] - $stats['deaths']);
 }
