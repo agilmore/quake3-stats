@@ -80,15 +80,27 @@ function parse_stream($stream){
           if($info['killer'] != $info['killed']){
             $s_client = $s_current_game->getClient($info['killer']);
             if(isset($s_client)){
-              $s_client->incrementKillCount();
+              //if($info['method_name'] == 'MOD_GAUNTLET') {
+              //if($info['method_name'] == 'MOD_ROCKET' || $info['method_name'] == 'MOD_ROCKET_SPLASH') {
+              if($info['method_name'] == 'MOD_SHOTGUN') {
+                $s_client->incrementKillCount();
+              }
             }
           }
           $s_client = $s_current_game->getClient($info['killed']);
           if(isset($s_client)){
-            $s_client->incrementDeathCount();
+            //if($info['method_name'] == 'MOD_GAUNTLET') {
+            //if($info['method_name'] == 'MOD_ROCKET' || $info['method_name'] == 'MOD_ROCKET_SPLASH') {
+            if($info['method_name'] == 'MOD_SHOTGUN') {
+              $s_client->incrementDeathCount();
+            }
             if($s_client->getId() == $s_blue_flag || $s_client->getId() == $s_red_flag){
               #echo "{$s_client->getName()} died whilst holding the flag?\n";
             }
+            //if($info['method_name'] == 'MOD_GAUNTLET') {
+            
+              $s_client->incrementHumiliationCount();
+            //}
           }
           break;
         case 'Item':
@@ -168,7 +180,7 @@ function parse_kill_info($text){
 
 function parse_score($text){
   $matches = array();
-  if(preg_match('/^(\d+)\s+ping:\s+(\d+)\s+client:\s+(\d+)\s+([\w_<>\^ ]+)$/', $text, $matches)){
+  if(preg_match('/^([-\d]+)\s+ping:\s+(\d+)\s+client:\s+(\d+)\s+([\w_<>\^ ]+)$/', $text, $matches)){
     return array(
       'score' => (int) $matches[1],
       'ping' => (int) $matches[2],
@@ -194,6 +206,7 @@ class Client{
   private $leaveTime;
   private $killCount = 0;
   private $deathCount = 0;
+  private $humiliationCount = 0;
   private $ctfScore = 0;
   private $team;
   private $flagCapture;
@@ -272,6 +285,14 @@ class Client{
   
   function incrementDeathCount(){
     $this->deathCount++;
+  }
+  
+  function getHumiliationCount(){
+    return $this->humiliationCount;
+  }
+  
+  function incrementHumiliationCount(){
+    $this->humiliationCount++;
   }
   
   function getCtfScore(){
