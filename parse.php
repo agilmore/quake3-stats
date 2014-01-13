@@ -80,28 +80,20 @@ function parse_stream($stream){
           if($info['killer'] != $info['killed']){
             $s_client = $s_current_game->getClient($info['killer']);
             if(isset($s_client)){
-              //if($info['method_name'] == 'MOD_GAUNTLET') {
-              //if($info['method_name'] == 'MOD_ROCKET' || $info['method_name'] == 'MOD_ROCKET_SPLASH') {
-              if($info['method_name'] == 'MOD_SHOTGUN') {
-                $s_client->incrementKillCount();
-              }
+              $s_client->incrementKillCount();
             }
           }
           $s_client = $s_current_game->getClient($info['killed']);
           if(isset($s_client)){
-            //if($info['method_name'] == 'MOD_GAUNTLET') {
-            //if($info['method_name'] == 'MOD_ROCKET' || $info['method_name'] == 'MOD_ROCKET_SPLASH') {
-            if($info['method_name'] == 'MOD_SHOTGUN') {
-              $s_client->incrementDeathCount();
-            }
-            if($s_client->getId() == $s_blue_flag || $s_client->getId() == $s_red_flag){
+            $s_client->incrementDeathCount();
+            #if($s_client->getId() == $s_blue_flag || $s_client->getId() == $s_red_flag){
               #echo "{$s_client->getName()} died whilst holding the flag?\n";
-            }
-            //if($info['method_name'] == 'MOD_GAUNTLET') {
-            
-              $s_client->incrementHumiliationCount();
-            //}
+            #}
           }
+          
+          $kill = new Kill($s_current_game->getClient($info['killer']), $s_client = $s_current_game->getClient($info['killed']), $info['method_name']);
+          $s_current_game->addKill($kill);
+          
           break;
         case 'Item':
           list($client_id, $item) = explode(' ', $matches[3]);
@@ -287,14 +279,6 @@ class Client{
     $this->deathCount++;
   }
   
-  function getHumiliationCount(){
-    return $this->humiliationCount;
-  }
-  
-  function incrementHumiliationCount(){
-    $this->humiliationCount++;
-  }
-  
   function getCtfScore(){
     return $this->ctfScore;
   }
@@ -334,10 +318,14 @@ class Client{
 
 class Game{
   private $clients;
+  private $kills;
   private $info;
+  
+  private $world;
 
   function __construct(){
-    
+    $this->clients = array();
+    $this->kills = array();
   }
   
   function addClient(&$client){
@@ -345,7 +333,14 @@ class Game{
   }
   
   function getClient($client_id){
-    if(isset($this->clients[$client_id])){
+    if($client_id == 1022){
+      if($this->world == NULL){
+        $this->world = new Client(1022);
+        $this->world->setName("<WORLD>");
+      }
+      return $this->world;
+    }
+    else if(isset($this->clients[$client_id])){
       return $this->clients[$client_id];
     }
     else{
@@ -370,6 +365,40 @@ class Game{
     }
   }
   
+  function addKill(Kill $kill){
+    $this->kills[] = $kill;
+  }
+  
+  function getKills($killer = NULL, $killed = NULL, $method = NULL){
+    $kills = $this->kills;
+    if($killer != NULL){
+      $killer_obj = $this->getClient($killer);
+      $killer_id = $killer_obj->getId();
+      $kills = array_filter($kills, function($kill) use ($killer_id){
+        if($kill->getKiller()->getId() == $killer_id){
+          return $kill;
+        }
+      });
+    }
+    
+    if($killed != NULL){
+      $killed_obj = $this->getClient($killed);
+      $kills = array_filter($kills, function($kill){
+        if($kill->getKiller() == $killed_obj){
+          return $kill;
+        }
+      });
+    }
+    
+    if($method != NULL){
+      $kills = array_filter($kills, function($kill){
+        if($kill->getMethod() == $method){
+          return $kill;
+        }
+      });
+    }
+  }
+  
   function __toString(){
     $output = "GAME:\n";
     if(!empty($this->info['mapname'])){
@@ -385,5 +414,56 @@ class Game{
       $output .= "\tThe game was empty.";
     }
     return $output;
+  }
+}
+
+class Kill{
+  const MOD_GAUNTLET = 0;
+  const MOD_MACHINEGUN = 1;
+  const MOD_TRIGGER_HURT = 2;
+  const MOD_RAILGUN = 3;
+  const MOD_SHOTGUN = 4;
+  const MOD_ROCKET_SPLASH = 5;
+  const MOD_PLASMA_SPLASH = 6;
+  const MOD_ROCKET = 7;
+  const MOD_PLASMA = 8;
+  const MOD_BFG_SPLASH = 9;
+  const MOD_BFG = 10;
+  const MOD_LIGHTNING = 11;
+  const MOD_GRENADE = 12;
+  
+  public static function getMethods(){
+    $reflect = new ReflectionClass('Kill');
+    return $reflect->getConstants();
+  }
+
+  private $killer;
+  private $killed;
+  private $method;
+
+  public function __construct(Client $killer, Client $killed, $method){
+    if(is_null($method)){
+      throw new Exception("One or more arguments was null.");
+    }
+    $this->killer = $killer;
+    $this->killed = $killed;
+    $this->method = $method;
+  }
+  
+  public function getKiller(){
+    return $this->killer;
+  }
+  
+  public function getKilled(){
+    return $this->killed;
+  }
+  
+  public function getMethod(){
+    return $this->method;
+  }
+  
+  function __toString(){
+    $method_name = array_search($this->method, Kill::getMethods());
+    return $this->killer . " killed " . $this->killed . " by " . $method_name;
   }
 }

@@ -28,6 +28,8 @@ foreach($games as $game){
       }
       $index_by_name[$client_name]['kills'] += $client->getKillCount();
       $index_by_name[$client_name]['deaths'] += $client->getDeathCount();
+      
+      #var_dump($game->getKills($client->getId()));
     }
   }
 }
@@ -39,13 +41,14 @@ $index_by_name = array_filter($index_by_name, function($v){
 // Calculate total
 array_walk($index_by_name, function(&$v, $i){
   $v['total'] = $v['kills'] - $v['deaths'];
+  $v['ratio'] = $v['kills'] / $v['deaths'];
 });
 // Sort by total
 uasort($index_by_name, function($a, $b){
   return $b['total'] - $a['total'];
 });
 
-echo "Player Name\t|\tKills\t|\tDeaths\t|\tTotal\n";
+echo "Player Name\t|\tKills\t|\tDeaths\t|\tTotal\t|\tRatio\n";
 foreach($index_by_name as $player_name => $stats){
-  printf("% -11s\t|\t% 5d\t|\t% 6d\t|\t%+ 5d\n", sanitize_client_name($player_name), $stats['kills'], $stats['deaths'], $stats['kills'] - $stats['deaths']);
+  printf("% -11s\t|\t% 5d\t|\t% 6d\t|\t%+ 5d\t|\t% 5.2f\n", sanitize_client_name($player_name), $stats['kills'], $stats['deaths'], $stats['total'], $stats['ratio']);
 }

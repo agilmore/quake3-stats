@@ -45,10 +45,10 @@ uasort($index_by_name, function($a, $b){
 
 $bold = `tput bold`;
 $normal = `tput sgr0`;
-echo "{$bold}Player Name | Pickups | Returns | Kills | Deaths | Total | Score | Score Average\n{$normal}";
+echo "{$bold}Player Name\t|\tPickups\t|\tReturns\t|\tKills\t|\tDeaths\t|\tTotal\t|\tScore\t|\tScore Average\n{$normal}";
 foreach($index_by_name as $player_name => $stats){
   printf(
-    "% -11s | % 7d | % 7d | % 5d | % 6d | %+ 5d | % 5d | {$bold}% 13.2f{$normal}\n",
+    "% -11s\t|\t% 7d\t|\t% 7d\t|\t% 5d\t|\t% 6d\t|\t%+ 5d\t|\t% 5d\t|\t{$bold}% 13.2f{$normal}\n",
     sanitize_client_name($player_name),
     $stats['captures'],
     $stats['returns'],
