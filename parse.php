@@ -391,12 +391,14 @@ class Game{
     }
     
     if($method != NULL){
-      $kills = array_filter($kills, function($kill){
+      $kills = array_filter($kills, function($kill) use ($method){
         if($kill->getMethod() == $method){
           return $kill;
         }
       });
     }
+    
+    return $kills;
   }
   
   function __toString(){
@@ -431,6 +433,12 @@ class Kill{
   const MOD_BFG = 10;
   const MOD_LIGHTNING = 11;
   const MOD_GRENADE = 12;
+  const MOD_GRENADE_SPLASH = 13;
+  const MOD_SUICIDE = 14;
+  const MOD_FALLING = 15;
+  const MOD_LAVA = 16;
+  const MOD_CRUSH = 17;
+  const MOD_TELEFRAG = 18;
   
   public static function getMethods(){
     $reflect = new ReflectionClass('Kill');
@@ -447,7 +455,18 @@ class Kill{
     }
     $this->killer = $killer;
     $this->killed = $killed;
-    $this->method = $method;
+    if(is_string($method)){
+      $methods = Kill::getMethods();
+      if(isset($methods[$method])){
+        $this->method = $methods[$method];
+      }
+      else if(is_int($method)){
+        $this->method = $method;
+      }
+      else{
+        var_dump($method);
+      }
+    }
   }
   
   public function getKiller(){
