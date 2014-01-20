@@ -60,5 +60,5 @@ foreach($index_by_name as $player_name => $stats){
   if(strlen($player_name) > 11){
     $player_name = substr($player_name, 0, 8) . '...';
   }
-  printf("% -11s\t|\t% 5d\t|\t% 6d\t|\t%+ 5d\t|\t% 5.2f\t|\t% 5.2f\n", sanitize_client_name($player_name), $stats['kills'], $stats['deaths'], $stats['total'], $stats['netto'], $stats['astat']);
+  printf("% -11s\t|\t% 5d\t|\t% 6d\t|\t%+ 5d\t|\t% 5.2f\t|\t% 5.2f\n", $player_name, $stats['kills'], $stats['deaths'], $stats['total'], $stats['netto'], $stats['astat']);
 }

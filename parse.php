@@ -1,6 +1,7 @@
 <?php
 
 $BOTS = array(
+  '<world>',
   'Patriot',
   'Angel',
   'Hunter',
@@ -33,6 +34,7 @@ $BOTS = array(
   'Hossman',
   'Wrack',
   'Visor',
+  'Rolf Harris'
 );
 
 
@@ -336,7 +338,7 @@ class Game{
     if($client_id == 1022){
       if($this->world == NULL){
         $this->world = new Client(1022);
-        $this->world->setName("<WORLD>");
+        $this->world->setName("<world>");
       }
       return $this->world;
     }
