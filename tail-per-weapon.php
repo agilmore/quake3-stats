@@ -67,13 +67,15 @@ array_walk($index_by_name, function(&$v, $i){
   else{
     $v['ratio'] = $v['kills'] / $v['deaths'];
   }
+  $v['netto'] = ((float) ($v['kills'] - $v['deaths'])) / ((float) ($v['kills'] + $v['deaths']));
 });
 // Sort by total
 uasort($index_by_name, function($a, $b){
-  return $b['total'] - $a['total'];
+  $d = $b['netto'] - $a['netto'];
+  return $d < 0 ? -1 : ($d > 0 ? 1 : 0);
 });
 
-echo "Player Name\t|\tKills\t|\tDeaths\t|\tTotal\t|\tRatio\n";
+echo "Player Name\t|\tKills\t|\tDeaths\t|\tTotal\t|\tNetto\n";
 foreach($index_by_name as $player_name => $stats){
-  printf("% -11s\t|\t% 5d\t|\t% 6d\t|\t%+ 5d\t|\t% 5.2f\n", sanitize_client_name($player_name), $stats['kills'], $stats['deaths'], $stats['total'], $stats['ratio']);
+  printf("% -11s\t|\t% 5d\t|\t% 6d\t|\t%+ 5d\t|\t% 5.2f\n", sanitize_client_name($player_name), $stats['kills'], $stats['deaths'], $stats['total'], $stats['netto']);
 }
