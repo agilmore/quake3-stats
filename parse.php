@@ -422,25 +422,37 @@ class Game{
 }
 
 class Kill{
-  const MOD_GAUNTLET = 0;
-  const MOD_MACHINEGUN = 1;
-  const MOD_TRIGGER_HURT = 2;
-  const MOD_RAILGUN = 3;
-  const MOD_SHOTGUN = 4;
-  const MOD_ROCKET_SPLASH = 5;
-  const MOD_PLASMA_SPLASH = 6;
-  const MOD_ROCKET = 7;
+  const MOD_UNKNOWN = 0;
+  const MOD_SHOTGUN = 1;
+  const MOD_GAUNTLET = 2;
+  const MOD_MACHINEGUN = 3;
+  const MOD_GRENADE = 4;
+  const MOD_GRENADE_SPLASH = 5;
+  const MOD_ROCKET = 6;
+  const MOD_ROCKET_SPLASH = 7;
   const MOD_PLASMA = 8;
-  const MOD_BFG_SPLASH = 9;
-  const MOD_BFG = 10;
+  const MOD_PLASMA_SPLASH = 9;
+  const MOD_RAILGUN = 10;
   const MOD_LIGHTNING = 11;
-  const MOD_GRENADE = 12;
-  const MOD_GRENADE_SPLASH = 13;
-  const MOD_SUICIDE = 14;
-  const MOD_FALLING = 15;
+  const MOD_BFG = 12;
+  const MOD_BFG_SPLASH = 13;
+  const MOD_WATER = 14;
+  const MOD_SLIME = 15;
   const MOD_LAVA = 16;
   const MOD_CRUSH = 17;
   const MOD_TELEFRAG = 18;
+  const MOD_FALLING = 19;
+  const MOD_SUICIDE = 20;
+  const MOD_TARGET_LASER = 21;
+  const MOD_TRIGGER_HURT = 22;
+  #ifdef MISSIONPACK
+  const MOD_NAIL = 23;
+  const MOD_CHAINGUN = 24;
+  const MOD_PROXIMITY_MINE = 25;
+  const MOD_KAMIKAZE = 26;
+  const MOD_JUICED = 27;
+  #endif
+  const MOD_GRAPPLE = 28;
   
   public static function getMethods(){
     $reflect = new ReflectionClass('Kill');

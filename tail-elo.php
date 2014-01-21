@@ -28,7 +28,6 @@ foreach($games as $game){
   
   $kills = $game->getKills();
   foreach($kills as $kill){
-    
     $killer_name = $kill->getKiller()->getName();
     $killed_name = $kill->getKilled()->getName();
     if(!in_array($killer_name, $BOTS) && !in_array($killed_name, $BOTS)){
@@ -50,14 +49,15 @@ foreach($games as $game){
       $rating_index[$killed_name] = (int) round($rating_index[$killed_name] + (K_FACTOR * ($score - $e)));
     }
   }
-  
-  
-  
+
   array_walk($missed_index, function(&$v, $k){$v+=1;});
   foreach($game->getClients() as $client){
-    if(!in_array($client->getName(), $BOTS)) {
-      $rating_index[$client->getName()] *= 1.01;
-      $missed_index[$client->getName()] = 0;
+    $client_name = $client->getName();
+    if(!in_array($client_name, $BOTS)) {
+      if(isset($rating_index[$client_name])){
+        $rating_index[$client_name] *= 1.01;
+      }
+      $missed_index[$client_name] = 0;
     }
   }
 }
