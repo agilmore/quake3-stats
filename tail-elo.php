@@ -49,24 +49,27 @@ foreach($games as $game){
       $rating_index[$killed_name] = (int) round($rating_index[$killed_name] + (K_FACTOR * ($score - $e)));
     }
   }
-
-  array_walk($missed_index, function(&$v, $k){$v+=1;});
+  
+  $players_names = array();
   foreach($game->getClients() as $client){
-    $client_name = $client->getName();
-    if(!in_array($client_name, $BOTS)) {
-      if(isset($rating_index[$client_name])){
-        $rating_index[$client_name] *= 1.01;
+    $players_names[] = $client->getName();
+  }
+  
+  $rated_player_names = array_keys($rating_index);
+  foreach(array_diff($rated_player_names, $players_names) as $missing_player){
+    $depreciate = $rating_index[$missing_player] * 0.001;
+    #$rating_index[$missing_player] -= $depreciate;
+    
+    $redist = round($depreciate / count($players_names));
+    if($redist > 0){
+      foreach($players_names as $player_name){
+        if(isset($rating_index[$player_name])){
+          #$rating_index[$player_name] += $redist;
+        }
       }
-      $missed_index[$client_name] = 0;
     }
   }
 }
-#array_walk($rating_index, function(&$v, $k) use ($missed_index){
-#  for($i = 0; $i < $missed_index[$k]; $i++) {
-#    echo "Reducing $k score cos the missed a game.\n";
-#    $v *= 0.99;
-#  }
-#});
 
 // Sort
 uksort($rating_index, 'strcasecmp');

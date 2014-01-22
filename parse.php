@@ -93,8 +93,10 @@ function parse_stream($stream){
             #}
           }
           
-          $kill = new Kill($s_current_game->getClient($info['killer']), $s_client = $s_current_game->getClient($info['killed']), $info['method_name']);
-          $s_current_game->addKill($kill);
+          if($s_current_game->getClient($info['killer']) != NULL && $s_current_game->getClient($info['killed']) != NULL){
+            $kill = new Kill($s_current_game->getClient($info['killer']), $s_current_game->getClient($info['killed']), $info['method_name']);
+            $s_current_game->addKill($kill);
+          }
           
           break;
         case 'Item':
