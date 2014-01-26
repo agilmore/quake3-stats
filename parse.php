@@ -50,7 +50,7 @@ function parse_stream($stream){
   
   $matches = array();
 
-  while($line = stream_get_line($stream, 8189, "\n")){
+  while($line = fgets($stream, 2048)){
     $line = trim($line);
     if(preg_match('/^(\d+:\d+)\s?([\w^]+):(?:\s(.*))?$/', $line, $matches)){
       switch($matches[2]){
