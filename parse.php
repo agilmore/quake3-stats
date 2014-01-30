@@ -121,11 +121,11 @@ function parse_stream($stream){
           }
           break;
         case 'score':
-          if($s_current_game->getInfo('g_gametype') == '4'){
+          #if($s_current_game->getInfo('g_gametype') == '4'){
             $score = parse_score($matches[3]);
             $s_client = $s_current_game->getClient($score['client_id']);
             $s_client->setCtfScore($score['score']);            
-          }
+          #}
           break;
         case 'ShutdownGame':
           return $s_current_game;
@@ -338,11 +338,11 @@ class Game{
   
   function getClient($client_id){
     if($client_id == 1022){
-      if($this->world == NULL){
-        $this->world = new Client(1022);
-        $this->world->setName("<world>");
+      if(!isset($this->clients[1022])){
+        $this->clients[1022] = new Client(1022);
+        $this->clients[1022]->setName("<world>");
       }
-      return $this->world;
+      return $this->clients[1022];
     }
     else if(isset($this->clients[$client_id])){
       return $this->clients[$client_id];
