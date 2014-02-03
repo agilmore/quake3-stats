@@ -34,7 +34,8 @@ $BOTS = array(
   'Hossman',
   'Wrack',
   'Visor',
-  'Rolf Harris'
+  'Rolf Harris',
+  'UnnamedPlayer',
 );
 
 
@@ -347,6 +348,13 @@ class Game{
     else if(isset($this->clients[$client_id])){
       return $this->clients[$client_id];
     }
+    else if(is_string($client_id)){
+      foreach($this->clients as $client){
+        if($client->getName() == $client_id){
+          return $client;
+        }
+      }
+    }
     else{
       return NULL;
     }
@@ -375,21 +383,39 @@ class Game{
   
   function getKills($killer = NULL, $killed = NULL, $method = NULL){
     $kills = $this->kills;
+    
     if($killer != NULL){
-      $killer_obj = $this->getClient($killer);
-      $killer_id = $killer_obj->getId();
-      $kills = array_filter($kills, function($kill) use ($killer_id){
-        if($kill->getKiller()->getId() == $killer_id){
-          return $kill;
+      if(is_int($killer)){
+        $killer_obj = $this->getClient($killer);
+        if(!empty($killer_obj)){
+          $killer = $killer_obj->getName();
+        }
+        else{
+          return array();
+        }
+      }
+      
+      $kills = array_filter($kills, function($kill) use ($killer){
+        if($kill->getKiller()->getName() == $killer){
+          return TRUE;
         }
       });
     }
     
     if($killed != NULL){
-      $killed_obj = $this->getClient($killed);
-      $kills = array_filter($kills, function($kill){
-        if($kill->getKiller() == $killed_obj){
-          return $kill;
+      if(is_int($killed)){
+        $killed_obj = $this->getClient($killed);
+        if(!empty($killed_obj)){
+          $killed = $killed_obj->getName();
+        }
+        else{
+          return array();
+        }
+      }
+      
+      $kills = array_filter($kills, function($kill) use ($killed){
+        if($kill->getKilled()->getName() == $killed){
+          return TRUE;
         }
       });
     }
@@ -397,7 +423,7 @@ class Game{
     if($method != NULL){
       $kills = array_filter($kills, function($kill) use ($method){
         if($kill->getMethod() == $method){
-          return $kill;
+          return TRUE;
         }
       });
     }
