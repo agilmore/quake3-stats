@@ -22,19 +22,19 @@ while($game = parse_stream($fh)){
   $kills = $game->getKills($player1, $player2, NULL);
   #var_dump($kills);
   foreach($kills as $kill){
-    $client_name = $kill->getKiller()->getName();
+    $client_name = sanitize_client_name($kill->getKiller()->getName());
     $index_by_name[$client_name]['kills'] += 1;
     
-    $client_name = $kill->getKilled()->getName();
+    $client_name = sanitize_client_name($kill->getKilled()->getName());
     $index_by_name[$client_name]['deaths'] += 1;
   }
   
   $kills = $game->getKills($player2, $player1, NULL);
   foreach($kills as $kill){
-    $client_name = $kill->getKiller()->getName();
+    $client_name = sanitize_client_name($kill->getKiller()->getName());
     $index_by_name[$client_name]['kills'] += 1;
     
-    $client_name = $kill->getKilled()->getName();
+    $client_name = sanitize_client_name($kill->getKilled()->getName());
     $index_by_name[$client_name]['deaths'] += 1;
   }
 }
@@ -62,7 +62,6 @@ $total = $index_by_name[$player1]['kills'] + $index_by_name[$player2]['kills'];
 
 echo "Player Name\t|\tKills\t|\tDeaths\t|\tTotal\t|\tNetto\t|\tPercent\n";
 foreach($index_by_name as $player_name => $stats){
-  $player_name = sanitize_client_name($player_name);
   if(strlen($player_name) > 11){
     $player_name = substr($player_name, 0, 8) . '...';
   }

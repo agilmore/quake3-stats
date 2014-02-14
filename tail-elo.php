@@ -28,8 +28,8 @@ foreach($games as $game){
   
   $kills = $game->getKills();
   foreach($kills as $kill){
-    $killer_name = $kill->getKiller()->getName();
-    $killed_name = $kill->getKilled()->getName();
+    $killer_name = sanitize_client_name($kill->getKiller()->getName());
+    $killed_name = sanitize_client_name($kill->getKilled()->getName());
     if(!in_array($killer_name, $BOTS) && !in_array($killed_name, $BOTS)){
       if(empty($rating_index[$killer_name])){
         $rating_index[$killer_name] = START_SCORE;
@@ -82,7 +82,6 @@ $normal = `tput sgr0`;
 echo "{$bold} # | Player Name\t|\tElo Rating{$normal}\n";
 $pos = 1;
 foreach($rating_index as $player_name => $rating){
-  $player_name = sanitize_client_name($player_name);
   if(strlen($player_name) > 11){
     $player_name = substr($player_name, 0, 8) . '...';
   }

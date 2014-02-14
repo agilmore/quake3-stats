@@ -12,7 +12,7 @@ while($game = parse_stream($fh)){
   if(!empty($clients) && is_array($clients)){
     $winner = NULL;
     foreach($clients as $client){
-      $client_name = $client->getName();
+      $client_name = sanitize_client_name($client->getName());
       if(in_array($client_name, $BOTS)){
         continue;
       }
@@ -57,7 +57,6 @@ uasort($index_by_name, function($a, $b){
 echo "Winner Summary\n";
 echo "Player Name\t|\tWins\t|\tGames\n";
 foreach($index_by_name as $player_name => $stats){
-  $player_name = sanitize_client_name($player_name);
   if(strlen($player_name) > 11){
     $player_name = substr($player_name, 0, 8) . '...';
   }

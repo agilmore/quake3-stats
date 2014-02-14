@@ -33,7 +33,7 @@ foreach($games as $game){
   foreach($s_filter_weapon as $weapon){
     $kills = $game->getKills(NULL, NULL, $methods[$weapon]);
     foreach($kills as $kill){
-      $client_name = $kill->getKiller()->getName();
+      $client_name = sanitize_client_name($kill->getKiller()->getName());
       if(in_array($client_name, $BOTS)){
         continue;
       }
@@ -77,5 +77,8 @@ uasort($index_by_name, function($a, $b){
 
 echo "Player Name\t|\tKills\t|\tDeaths\t|\tTotal\t|\tNetto\n";
 foreach($index_by_name as $player_name => $stats){
-  printf("% -11s\t|\t% 5d\t|\t% 6d\t|\t%+ 5d\t|\t% 5.2f\n", sanitize_client_name($player_name), $stats['kills'], $stats['deaths'], $stats['total'], $stats['netto']);
+  if(strlen($player_name) > 11){
+    $player_name = substr($player_name, 0, 8) . '...';
+  }
+  printf("% -11s\t|\t% 5d\t|\t% 6d\t|\t%+ 5d\t|\t% 5.2f\n", $player_name, $stats['kills'], $stats['deaths'], $stats['total'], $stats['netto']);
 }

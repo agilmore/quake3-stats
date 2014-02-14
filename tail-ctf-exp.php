@@ -17,7 +17,7 @@ foreach($games as $game){
   $clients = $game->getClients();
   if(!empty($clients) && is_array($clients)){
     foreach($clients as $client){
-      $client_name = $client->getName();
+      $client_name = sanitize_client_name($client->getName());
       if(in_array($client_name, $BOTS)){
         continue;
       }
@@ -47,9 +47,12 @@ $bold = `tput bold`;
 $normal = `tput sgr0`;
 echo "{$bold}Player Name\t|\tPickups\t|\tReturns\t|\tKills\t|\tDeaths\t|\tTotal\t|\tScore\t|\tScore Average\n{$normal}";
 foreach($index_by_name as $player_name => $stats){
+  if(strlen($player_name) > 11){
+    $player_name = substr($player_name, 0, 8) . '...';
+  }
   printf(
     "% -11s\t|\t% 7d\t|\t% 7d\t|\t% 5d\t|\t% 6d\t|\t%+ 5d\t|\t% 5d\t|\t{$bold}% 13.2f{$normal}\n",
-    sanitize_client_name($player_name),
+    $player_name,
     $stats['captures'],
     $stats['returns'],
     $stats['kills'],
