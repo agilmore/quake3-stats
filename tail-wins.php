@@ -8,7 +8,6 @@ $index_by_name = array();
 $game_count = 0;
 while($game = parse_stream($fh)){
   if($game->getInfo('g_gametype') != '0') continue;
-  $game_count++;
   $clients = $game->getClients();
   if(!empty($clients) && is_array($clients)){
     $winner = NULL;
@@ -26,7 +25,11 @@ while($game = parse_stream($fh)){
         $winner = $client;
       }
     }
-    $index_by_name[$winner->getName()]['wins'] += 1;
+    
+    if($winner->getCtfScore() > 0){
+      $index_by_name[$winner->getName()]['wins'] += 1;
+      $game_count++;
+    }
   }
 }
 
