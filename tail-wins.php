@@ -6,13 +6,15 @@ $fh = fopen('php://stdin', 'r');
 
 $index_by_name = array();
 $game_count = 0;
+$i = 0;
 while($game = parse_stream($fh)){
   if($game->getInfo('g_gametype') != '0') continue;
+  $i++;
   $clients = $game->getClients();
   if(!empty($clients) && is_array($clients)){
     $winner = NULL;
     foreach($clients as $client){
-      $client_name = sanitize_client_name($client->getName());
+      $client_name = $client->getName();
       if(in_array($client_name, $BOTS)){
         continue;
       }
@@ -26,8 +28,15 @@ while($game = parse_stream($fh)){
       }
     }
     
-    if($winner->getCtfScore() > 0){
-      $index_by_name[$winner->getName()]['wins'] += 1;
+    if(is_object($winner) && $winner->getCtfScore() > 0){
+      $client_name = $winner->getName();
+      if(isset($index_by_name[$client_name]['wins'])){
+        $index_by_name[$client_name]['wins'] += 1;
+      }
+      else{
+        $index_by_name[$client_name]['wins'] = 1;
+        var_dump($client_name);
+      }
       $game_count++;
     }
   }
@@ -49,7 +58,13 @@ echo $game_count, " games counted\n";
 // Sort by total
 uasort($index_by_name, function($a, $b){
   $d = $b['wins'] - $a['wins'];
-  return $d < 0 ? -1 : ($d > 0 ? 1 : 0);
+  $pass1 = $d < 0 ? -1 : ($d > 0 ? 1 : 0);
+  if($pass1 == 0){
+    return $a['games'] - $b['games'];
+  }
+  else{
+    return $pass1;
+  }
 });
 
 // (frags - death) / (frags + deaths)

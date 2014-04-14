@@ -60,11 +60,13 @@ foreach($games as $game){
     $depreciate = $rating_index[$missing_player] * 0.001;
     #$rating_index[$missing_player] -= $depreciate;
     
-    $redist = round($depreciate / count($players_names));
-    if($redist > 0){
-      foreach($players_names as $player_name){
-        if(isset($rating_index[$player_name])){
-          #$rating_index[$player_name] += $redist;
+    if(count($players_names) > 0){
+      $redist = round($depreciate / count($players_names));
+      if($redist > 0){
+        foreach($players_names as $player_name){
+          if(isset($rating_index[$player_name])){
+            #$rating_index[$player_name] += $redist;
+          }
         }
       }
     }

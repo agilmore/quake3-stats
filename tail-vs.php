@@ -5,37 +5,55 @@ require_once('parse.php');
 $fh = fopen('php://stdin', 'r');
 
 $player1 = $argv[1];
-$player2 = $argv[2];
+$player2 = NULL;
+if(isset($argv[2])){
+  $player2 = $argv[2];
+}
 
-if(empty($player1) && empty($player2)){
-  die('Players not properly defined.');
+if(empty($player1)){
+  die('Player not properly defined.');
 }
 
 $index_by_name = array();
 $index_by_name[$player1] = array('kills' => 0, 'deaths' => 0);
-$index_by_name[$player2] = array('kills' => 0, 'deaths' => 0);
 
 while($game = parse_stream($fh)){
   if($game->getInfo('g_gametype') != '0') continue;
   $methods = Kill::getMethods();
   
-  $kills = $game->getKills($player1, $player2, NULL);
+  if(!empty($player2)){
+    $kills = $game->getKills($player1, $player2, NULL);
+  }
+  else{
+    $kills = $game->getKills($player1, NULL, NULL);
+  }
   #var_dump($kills);
   foreach($kills as $kill){
     $client_name = sanitize_client_name($kill->getKiller()->getName());
+    if(!isset($index_by_name[$client_name])){
+      $index_by_name[$client_name] = array('kills' => 0, 'deaths' => 0);
+    }
     $index_by_name[$client_name]['kills'] += 1;
     
     $client_name = sanitize_client_name($kill->getKilled()->getName());
+    if(!isset($index_by_name[$client_name])){
+      $index_by_name[$client_name] = array('kills' => 0, 'deaths' => 0);
+    }
     $index_by_name[$client_name]['deaths'] += 1;
   }
   
-  $kills = $game->getKills($player2, $player1, NULL);
-  foreach($kills as $kill){
-    $client_name = sanitize_client_name($kill->getKiller()->getName());
-    $index_by_name[$client_name]['kills'] += 1;
-    
-    $client_name = sanitize_client_name($kill->getKilled()->getName());
-    $index_by_name[$client_name]['deaths'] += 1;
+  if(!empty($player2)){
+    $kills = $game->getKills($player2, $player1, NULL);
+    foreach($kills as $kill){
+      if(!isset($index_by_name[$player2])){
+        $index_by_name[$player2] = array('kills' => 0, 'deaths' => 0);
+      }
+      $client_name = sanitize_client_name($kill->getKiller()->getName());
+      $index_by_name[$client_name]['kills'] += 1;
+      
+      $client_name = sanitize_client_name($kill->getKilled()->getName());
+      $index_by_name[$client_name]['deaths'] += 1;
+    }
   }
 }
 

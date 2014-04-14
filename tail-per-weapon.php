@@ -42,7 +42,7 @@ foreach($games as $game){
       }
       $index_by_name[$client_name]['kills'] += 1;
       
-      $client_name = $kill->getKilled()->getName();
+      $client_name = sanitize_client_name($kill->getKilled()->getName());
       if(in_array($client_name, $BOTS)){
         continue;
       }

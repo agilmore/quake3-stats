@@ -122,11 +122,11 @@ function parse_stream($stream){
           }
           break;
         case 'score':
-          #if($s_current_game->getInfo('g_gametype') == '4'){
-            $score = parse_score($matches[3]);
-            $s_client = $s_current_game->getClient($score['client_id']);
-            $s_client->setCtfScore($score['score']);            
-          #}
+          $score = parse_score($matches[3]);
+          $s_client = $s_current_game->getClient($score['client_id']);
+          if(isset($s_client)){
+            $s_client->setCtfScore($score['score']);
+          }
           break;
         case 'ShutdownGame':
           return $s_current_game;
@@ -146,7 +146,9 @@ function unpack_attributes($text){
   $parts = explode('\\', $text);
   $items = array();
   for($i = 0; $i < count($parts); $i+=2){
-    $items[$parts[$i]] = $parts[$i+1];
+    if(isset($parts[$i+1])){
+      $items[$parts[$i]] = $parts[$i+1];
+    }
   }
   return $items;
 }
@@ -218,6 +220,10 @@ class Client{
   }
   
   function getName(){
+    return sanitize_client_name($this->name);
+  }
+  
+  function getRawName(){
     return $this->name;
   }
   
